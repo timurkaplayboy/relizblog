@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}RelizBlog{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Релізний центр</p>
+        <h1>Новини, релізи та оголошення в одному місці</h1>
+        <p class="lead">Базова платформа для публікацій, службових оголошень, профілів користувачів і підписок.</p>
+    </div>
+</section>
+
+<section class="section-grid">
+    <div>
+        <div class="section-heading">
+            <h2>Останні публікації</h2>
+            <a href="{% url 'blog:post_list' %}">Усі публікації</a>
+        </div>
+        <div class="stack">
+            {% for post in latest_posts %}
+                <article class="card">
+                    <p class="meta">{{ post.category|default:'Без категорії' }} · {{ post.published_at|date:'d.m.Y' }}</p>
+                    <h3><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h3>
+                    <p>{{ post.excerpt|default:post.content|truncatewords:24 }}</p>
+                </article>
+            {% empty %}
+                <p class="empty">Публікацій ще немає.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div>
+        <div class="section-heading">
+            <h2>Оголошення</h2>
+            <a href="{% url 'announcements:list' %}">Усі оголошення</a>
+        </div>
+        <div class="stack">
+            {% for announcement in latest_announcements %}
+                <article class="card">
+                    <p class="meta">{{ announcement.get_priority_display }}</p>
+                    <h3><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h3>
+                    <p>{{ announcement.body|truncatewords:22 }}</p>
+                </article>
+            {% empty %}
+                <p class="empty">Активних оголошень немає.</p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

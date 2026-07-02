@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ announcement.title }} · RelizBlog{% endblock %}
+
+{% block content %}
+<article class="article">
+    <p class="meta">{{ announcement.get_priority_display }} · {{ announcement.created_at|date:'d.m.Y' }}</p>
+    <h1>{{ announcement.title }}</h1>
+    <div class="article-body">{{ announcement.body|linebreaks }}</div>
+</article>
+{% endblock %}

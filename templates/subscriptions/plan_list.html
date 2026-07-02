@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Підписки · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Підписки</h1>
+</section>
+
+<section class="cards-grid">
+    {% for plan in plans %}
+        <article class="card plan">
+            <h2>{{ plan.name }}</h2>
+            <p>{{ plan.description|default:'Базовий тариф для користувачів платформи.' }}</p>
+            <p class="price">{{ plan.price }} грн</p>
+            <p class="meta">{{ plan.duration_days }} днів</p>
+        </article>
+    {% empty %}
+        <p class="empty">Активних тарифів поки немає.</p>
+    {% endfor %}
+</section>
+{% endblock %}

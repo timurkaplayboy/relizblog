@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Мої підписки · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Мої підписки</h1>
+</section>
+
+<section class="stack">
+    {% for subscription in subscriptions %}
+        <article class="card">
+            <h2>{{ subscription.plan.name }}</h2>
+            <p class="meta">{{ subscription.get_status_display }} · {{ subscription.start_date|date:'d.m.Y' }} - {{ subscription.end_date|date:'d.m.Y' }}</p>
+        </article>
+    {% empty %}
+        <p class="empty">У вас ще немає підписок.</p>
+    {% endfor %}
+</section>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }} · RelizBlog{% endblock %}
+
+{% block content %}
+<article class="article">
+    <p class="meta">{{ post.category|default:'Без категорії' }} · {{ post.author }} · {{ post.published_at|date:'d.m.Y' }}</p>
+    <h1>{{ post.title }}</h1>
+    {% if post.cover_image %}
+        <img class="cover" src="{{ post.cover_image.url }}" alt="{{ post.title }}">
+    {% endif %}
+    <div class="article-body">{{ post.content|linebreaks }}</div>
+</article>
+
+<section class="stack">
+    <h2>Коментарі</h2>
+    {% for comment in post.comments.all %}
+        {% if comment.is_active %}
+            <article class="card">
+                <p class="meta">{{ comment.author }} · {{ comment.created_at|date:'d.m.Y H:i' }}</p>
+                <p>{{ comment.text }}</p>
+            </article>
+        {% endif %}
+    {% empty %}
+        <p class="empty">Коментарів ще немає.</p>
+    {% endfor %}
+</section>
+{% endblock %}

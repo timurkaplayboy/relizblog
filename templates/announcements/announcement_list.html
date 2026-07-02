@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Оголошення · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Оголошення</h1>
+</section>
+
+<section class="stack">
+    {% for announcement in announcements %}
+        <article class="card">
+            <p class="meta">{{ announcement.get_priority_display }} · {{ announcement.created_at|date:'d.m.Y' }}</p>
+            <h2><a href="{{ announcement.get_absolute_url }}">{{ announcement.title }}</a></h2>
+            <p>{{ announcement.body|truncatewords:30 }}</p>
+        </article>
+    {% empty %}
+        <p class="empty">Активних оголошень немає.</p>
+    {% endfor %}
+</section>
+{% endblock %}

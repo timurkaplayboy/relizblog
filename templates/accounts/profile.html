@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Профіль · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="profile">
+    <div>
+        {% if user.profile.avatar %}
+            <img class="avatar" src="{{ user.profile.avatar.url }}" alt="{{ user.username }}">
+        {% else %}
+            <div class="avatar avatar-placeholder">{{ user.username|first|upper }}</div>
+        {% endif %}
+    </div>
+    <div>
+        <p class="eyebrow">{{ user.profile.get_role_display }}</p>
+        <h1>{{ user.get_full_name|default:user.username }}</h1>
+        <p class="meta">{{ user.email|default:'Email не вказано' }}</p>
+        <p>{{ user.profile.bio|default:'Опис профілю ще не додано.' }}</p>
+        <a class="button-link" href="{% url 'accounts:profile_edit' %}">Редагувати профіль</a>
+    </div>
+</section>
+
+<section class="stack">
+    <h2>Мої підписки</h2>
+    <a href="{% url 'subscriptions:my_subscriptions' %}">Переглянути підписки</a>
+</section>
+{% endblock %}

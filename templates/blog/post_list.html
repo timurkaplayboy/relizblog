@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Блог · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+    <h1>Блог</h1>
+</section>
+
+<section class="stack">
+    {% for post in posts %}
+        <article class="card">
+            <p class="meta">{{ post.category|default:'Без категорії' }} · {{ post.author }} · {{ post.published_at|date:'d.m.Y' }}</p>
+            <h2><a href="{{ post.get_absolute_url }}">{{ post.title }}</a></h2>
+            <p>{{ post.excerpt|default:post.content|truncatewords:30 }}</p>
+        </article>
+    {% empty %}
+        <p class="empty">Опублікованих матеріалів ще немає.</p>
+    {% endfor %}
+</section>
+{% endblock %}
