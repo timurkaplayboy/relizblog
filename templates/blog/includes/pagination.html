@@ -1,0 +1,13 @@
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination">
+        {% with param=page_param|default:'page' %}
+            {% if page_obj.has_previous %}
+                <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}{{ param }}={{ page_obj.previous_page_number }}">Назад</a>
+            {% endif %}
+            <span>{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            {% if page_obj.has_next %}
+                <a href="?{% if pagination_query %}{{ pagination_query }}&{% endif %}{{ param }}={{ page_obj.next_page_number }}">Вперед</a>
+            {% endif %}
+        {% endwith %}
+    </nav>
+{% endif %}

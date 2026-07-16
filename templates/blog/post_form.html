@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if object %}Редагування статті{% else %}Нова стаття{% endif %} · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel wide-form">
+    <h1>{% if object %}Редагування статті{% else %}Нова стаття{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+
+        <h2>Медіа</h2>
+        {{ media_formset.management_form }}
+        <div class="formset">
+            {% for media_form in media_formset %}
+                <div class="formset-row">
+                    {{ media_form.as_p }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="submit">Зберегти</button>
+    </form>
+</section>
+{% endblock %}

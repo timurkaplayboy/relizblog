@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Модерація коментаря · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <h1>Модерація коментаря</h1>
+    <p>{{ object.text }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Зберегти</button>
+    </form>
+</section>
+{% endblock %}

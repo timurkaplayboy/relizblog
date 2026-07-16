@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Тег · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <h1>{% if object %}Редагування тегу{% else %}Новий тег{% endif %}</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Зберегти</button>
+    </form>
+</section>
+{% endblock %}

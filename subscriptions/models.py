@@ -54,5 +54,3 @@ class Subscription(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user} - {self.plan}'
-
-# Create your models here.

@@ -5,6 +5,6 @@ from . import views
 app_name = 'subscriptions'
 
 urlpatterns = [
-    path('', views.plan_list, name='plan_list'),
-    path('my/', views.my_subscriptions, name='my_subscriptions'),
+    path('', views.PlanListView.as_view(), name='plan_list'),
+    path('my/', views.MySubscriptionListView.as_view(), name='my_subscriptions'),
 ]

@@ -1,52 +1,64 @@
 from django.contrib import messages
 from django.contrib.auth import login
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import LoginView, LogoutView
+from django.shortcuts import redirect
+from django.urls import reverse_lazy
+from django.views.generic import CreateView, TemplateView
 
-from .forms import ProfileUpdateForm, RegisterForm, UserUpdateForm
-
-
-def register(request):
-    if request.method == 'POST':
-        form = RegisterForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            login(request, user)
-            messages.success(request, 'Акаунт створено. Вітаємо!')
-            return redirect('accounts:profile')
-    else:
-        form = RegisterForm()
-
-    return render(request, 'accounts/register.html', {'form': form})
+from .forms import ProfileUpdateForm, UserRegistrationForm, UserUpdateForm
 
 
-@login_required
-def profile(request):
-    return render(request, 'accounts/profile.html')
+class RegisterView(CreateView):
+    form_class = UserRegistrationForm
+    success_url = reverse_lazy('accounts:profile')
+    template_name = 'accounts/register.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        login(self.request, self.object)
+        messages.success(self.request, 'Акаунт створено. Вітаємо!')
+        return response
 
 
-@login_required
-def profile_edit(request):
-    if request.method == 'POST':
+class AccountLoginView(LoginView):
+    template_name = 'accounts/login.html'
+
+
+class AccountLogoutView(LogoutView):
+    pass
+
+
+class ProfileView(LoginRequiredMixin, TemplateView):
+    template_name = 'accounts/profile.html'
+
+
+class ProfileEditView(LoginRequiredMixin, TemplateView):
+    template_name = 'accounts/profile_edit.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.setdefault('user_form', UserUpdateForm(instance=self.request.user))
+        context.setdefault(
+            'profile_form',
+            ProfileUpdateForm(instance=self.request.user.profile),
+        )
+        return context
+
+    def post(self, request, *args, **kwargs):
         user_form = UserUpdateForm(request.POST, instance=request.user)
         profile_form = ProfileUpdateForm(
             request.POST,
             request.FILES,
             instance=request.user.profile,
         )
+
         if user_form.is_valid() and profile_form.is_valid():
             user_form.save()
             profile_form.save()
             messages.success(request, 'Профіль оновлено.')
             return redirect('accounts:profile')
-    else:
-        user_form = UserUpdateForm(instance=request.user)
-        profile_form = ProfileUpdateForm(instance=request.user.profile)
 
-    return render(
-        request,
-        'accounts/profile_edit.html',
-        {'user_form': user_form, 'profile_form': profile_form},
-    )
-
-# Create your views here.
+        return self.render_to_response(
+            self.get_context_data(user_form=user_form, profile_form=profile_form)
+        )
