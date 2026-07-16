@@ -1,9 +1,31 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.text import slugify
 
 from core.models import TimeStampedModel
+
+
+def make_unique_slug(instance, source_value, slug_field='slug'):
+    base_slug = slugify(source_value, allow_unicode=True) or 'item'
+    slug = base_slug
+    model = instance.__class__
+    counter = 2
+
+    queryset = model.objects.filter(**{slug_field: slug})
+    if instance.pk:
+        queryset = queryset.exclude(pk=instance.pk)
+
+    while queryset.exists():
+        slug = f'{base_slug}-{counter}'
+        queryset = model.objects.filter(**{slug_field: slug})
+        if instance.pk:
+            queryset = queryset.exclude(pk=instance.pk)
+        counter += 1
+
+    return slug
 
 
 class Category(TimeStampedModel):
@@ -18,8 +40,32 @@ class Category(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.name, allow_unicode=True)
+            self.slug = make_unique_slug(self, self.name)
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('blog:category_detail', kwargs={'category_slug': self.slug})
+
+    def __str__(self):
+        return self.name
+
+
+class Tag(TimeStampedModel):
+    name = models.CharField(max_length=80, unique=True, verbose_name='Назва')
+    slug = models.SlugField(max_length=100, unique=True, blank=True, verbose_name='Slug')
+
+    class Meta:
+        ordering = ('name',)
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = make_unique_slug(self, self.name)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('blog:tag_detail', kwargs={'tag_slug': self.slug})
 
     def __str__(self):
         return self.name
@@ -46,12 +92,14 @@ class Post(TimeStampedModel):
         null=True,
         verbose_name='Категорія',
     )
+    tags = models.ManyToManyField(Tag, related_name='posts', blank=True, verbose_name='Теги')
     excerpt = models.CharField(max_length=255, blank=True, verbose_name='Короткий опис')
     content = models.TextField(verbose_name='Текст')
     cover_image = models.FileField(
         upload_to='blog/covers/',
         blank=True,
         null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp', 'gif'])],
         verbose_name='Обкладинка',
     )
     status = models.CharField(
@@ -69,7 +117,11 @@ class Post(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = make_unique_slug(self, self.title)
+        if self.status == self.Status.PUBLISHED and not self.published_at:
+            self.published_at = timezone.now()
+        if self.status == self.Status.DRAFT:
+            self.published_at = None
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
@@ -77,6 +129,39 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+
+class PostMedia(TimeStampedModel):
+    class MediaType(models.TextChoices):
+        IMAGE = 'image', 'Фото'
+        VIDEO = 'video', 'Відео'
+
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='media_items',
+        verbose_name='Стаття',
+    )
+    media_type = models.CharField(
+        max_length=20,
+        choices=MediaType.choices,
+        default=MediaType.IMAGE,
+        verbose_name='Тип',
+    )
+    file = models.FileField(
+        upload_to='blog/media/',
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm', 'mov'])],
+        verbose_name='Файл',
+    )
+    title = models.CharField(max_length=160, blank=True, verbose_name='Підпис')
+
+    class Meta:
+        ordering = ('created_at',)
+        verbose_name = 'Медіа статті'
+        verbose_name_plural = 'Медіа статей'
+
+    def __str__(self):
+        return self.title or f'{self.get_media_type_display()} для {self.post}'
 
 
 class Comment(TimeStampedModel):
@@ -94,6 +179,15 @@ class Comment(TimeStampedModel):
     )
     text = models.TextField(verbose_name='Коментар')
     is_active = models.BooleanField(default=True, verbose_name='Активний')
+    moderated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        related_name='moderated_comments',
+        blank=True,
+        null=True,
+        verbose_name='Модератор',
+    )
+    moderated_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата модерації')
 
     class Meta:
         ordering = ('-created_at',)
@@ -102,5 +196,3 @@ class Comment(TimeStampedModel):
 
     def __str__(self):
         return f'{self.author} -> {self.post}'
-
-# Create your models here.

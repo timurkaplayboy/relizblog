@@ -22,5 +22,3 @@ class AnnouncementDetailView(DetailView):
 
     def get_queryset(self):
         return Announcement.objects.filter(is_active=True)
-
-# Create your views here.

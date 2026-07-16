@@ -1,25 +1,26 @@
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic import ListView
 
 from .models import Subscription, SubscriptionPlan
 
 
-def plan_list(request):
-    plans = SubscriptionPlan.objects.filter(is_active=True)
-    return render(request, 'subscriptions/plan_list.html', {'plans': plans})
+class PlanListView(ListView):
+    model = SubscriptionPlan
+    template_name = 'subscriptions/plan_list.html'
+    context_object_name = 'plans'
+
+    def get_queryset(self):
+        return SubscriptionPlan.objects.filter(is_active=True)
 
 
-@login_required
-def my_subscriptions(request):
-    subscriptions = (
-        Subscription.objects.select_related('plan')
-        .filter(user=request.user)
-        .order_by('-start_date')
-    )
-    return render(
-        request,
-        'subscriptions/my_subscriptions.html',
-        {'subscriptions': subscriptions},
-    )
+class MySubscriptionListView(LoginRequiredMixin, ListView):
+    model = Subscription
+    template_name = 'subscriptions/my_subscriptions.html'
+    context_object_name = 'subscriptions'
 
-# Create your views here.
+    def get_queryset(self):
+        return (
+            Subscription.objects.select_related('plan')
+            .filter(user=self.request.user)
+            .order_by('-start_date')
+        )

@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.core.validators import FileExtensionValidator
 from django.db import models
 
 from core.models import TimeStampedModel
@@ -27,6 +28,7 @@ class Profile(TimeStampedModel):
         upload_to='avatars/',
         blank=True,
         null=True,
+        validators=[FileExtensionValidator(['jpg', 'jpeg', 'png', 'webp', 'gif'])],
         verbose_name='Аватар',
     )
 
@@ -36,5 +38,3 @@ class Profile(TimeStampedModel):
 
     def __str__(self):
         return f'{self.user.username} ({self.get_role_display()})'
-
-# Create your models here.

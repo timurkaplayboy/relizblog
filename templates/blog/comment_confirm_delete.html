@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Видалення коментаря · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <h1>Видалити коментар?</h1>
+    <p>{{ object.text|truncatewords:24 }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="danger-button" type="submit">Видалити</button>
+        <a href="{{ object.post.get_absolute_url }}#comments">Скасувати</a>
+    </form>
+</section>
+{% endblock %}

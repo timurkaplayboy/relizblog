@@ -16,6 +16,9 @@
                 <a href="{% url 'announcements:list' %}">Оголошення</a>
                 <a href="{% url 'subscriptions:plan_list' %}">Підписки</a>
                 {% if user.is_authenticated %}
+                    {% if user.is_staff or user.is_superuser or user.profile.role == 'author' or user.profile.role == 'admin' %}
+                        <a href="{% url 'blog:post_create' %}">Нова стаття</a>
+                    {% endif %}
                     <a href="{% url 'accounts:profile' %}">Профіль</a>
                     <form class="logout-form" action="{% url 'accounts:logout' %}" method="post">
                         {% csrf_token %}

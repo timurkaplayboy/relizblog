@@ -15,5 +15,3 @@ class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ('user', 'plan', 'status', 'start_date', 'end_date')
     list_filter = ('status', 'plan', 'start_date', 'end_date')
     search_fields = ('user__username', 'user__email', 'plan__name')
-
-# Register your models here.

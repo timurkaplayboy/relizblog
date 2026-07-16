@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Видалення категорії · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <h1>Видалити категорію?</h1>
+    <p>Категорія “{{ object.name }}” буде прибрана зі статей.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="danger-button" type="submit">Видалити</button>
+        <a href="{% url 'blog:category_list' %}">Скасувати</a>
+    </form>
+</section>
+{% endblock %}

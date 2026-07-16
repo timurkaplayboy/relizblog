@@ -9,5 +9,3 @@ class AnnouncementAdmin(admin.ModelAdmin):
     list_filter = ('priority', 'is_active', 'created_at')
     search_fields = ('title', 'body')
     prepopulated_fields = {'slug': ('title',)}
-
-# Register your models here.
