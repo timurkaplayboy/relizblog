@@ -4,7 +4,23 @@
 
 {% block content %}
 <section class="page-heading">
-    <h1>Підписки</h1>
+    <div>
+        <p class="eyebrow">Stay in loop</p>
+        <h1>Підписки</h1>
+    </div>
+</section>
+
+<section class="newsletter-panel">
+    <div>
+        <p class="eyebrow">Email alerts</p>
+        <h2>Нові статті прямо на пошту</h2>
+        <p>Підпишись один раз, а якщо стане шумно - у кожному листі буде персональне посилання для відписки.</p>
+    </div>
+    <form method="post" action="{% url 'subscriptions:newsletter_subscribe' %}">
+        {% csrf_token %}
+        {{ newsletter_form.as_p }}
+        <button type="submit">Підписатися</button>
+    </form>
 </section>
 
 <section class="cards-grid">

@@ -1,7 +1,7 @@
 from django import forms
 from django.forms import inlineformset_factory
 
-from .models import Category, Comment, Post, PostMedia, Tag
+from .models import Category, Comment, Post, PostMedia, PostRating, Tag
 
 
 class PostForm(forms.ModelForm):
@@ -94,6 +94,26 @@ class CommentModerationForm(forms.ModelForm):
         labels = {
             'is_active': 'Активний',
         }
+
+
+class PostRatingForm(forms.ModelForm):
+    class Meta:
+        model = PostRating
+        fields = ('score',)
+        labels = {
+            'score': 'Оцінка',
+        }
+        widgets = {
+            'score': forms.RadioSelect(
+                choices=[(score, f'{score}') for score in range(1, 6)]
+            ),
+        }
+
+    def clean_score(self):
+        score = self.cleaned_data['score']
+        if score < 1 or score > 5:
+            raise forms.ValidationError('Оцінка має бути від 1 до 5.')
+        return score
 
 
 class PostMediaForm(forms.ModelForm):

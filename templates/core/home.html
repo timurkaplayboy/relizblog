@@ -4,15 +4,38 @@
 
 {% block content %}
 <section class="hero">
-    <div>
+    <div class="hero-copy">
         <p class="eyebrow">Релізний центр</p>
-        <h1>Новини, релізи та оголошення в одному місці</h1>
-        <p class="lead">Базова платформа для публікацій, службових оголошень, профілів користувачів і підписок.</p>
+        <h1>Пульс релізів, статей і продуктових оголошень</h1>
+        <p class="lead">RelizBlog збирає оновлення команди в одному швидкому, чистому й зручному робочому просторі.</p>
+        <div class="hero-actions">
+            <a class="button-link" href="{% url 'blog:post_list' %}">Читати блог</a>
+            {% if user.is_authenticated %}
+                <a class="ghost-link" href="{% url 'accounts:profile' %}">Мій профіль</a>
+            {% else %}
+                <a class="ghost-link" href="{% url 'accounts:register' %}">Приєднатись</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+        <div class="release-card release-card-main">
+            <span class="visual-label">Release stream</span>
+            <strong>{{ published_posts_count }}</strong>
+            <p>Published posts</p>
+        </div>
+        <div class="release-card">
+            <span class="visual-label">Categories</span>
+            <strong>{{ categories_count }}</strong>
+        </div>
+        <div class="release-card">
+            <span class="visual-label">Tags</span>
+            <strong>{{ tags_count }}</strong>
+        </div>
     </div>
 </section>
 
 <section class="section-grid">
-    <div>
+    <div class="content-column">
         <div class="section-heading">
             <h2>Останні публікації</h2>
             <a href="{% url 'blog:post_list' %}">Усі публікації</a>
@@ -30,7 +53,7 @@
         </div>
     </div>
 
-    <div>
+    <div class="content-column">
         <div class="section-heading">
             <h2>Оголошення</h2>
             <a href="{% url 'announcements:list' %}">Усі оголошення</a>
@@ -47,5 +70,53 @@
             {% endfor %}
         </div>
     </div>
+</section>
+
+<section class="dashboard-widgets">
+    <article class="widget-panel">
+        <div class="section-heading">
+            <h2>Популярні статті</h2>
+            <span class="meta">rating + views</span>
+        </div>
+        <div class="stack">
+            {% for post in popular_posts %}
+                <a class="ranked-item" href="{{ post.get_absolute_url }}">
+                    <span>{{ forloop.counter }}</span>
+                    <strong>{{ post.title }}</strong>
+                    <small>{{ post.average_rating }} / 5 · {{ post.views_count }} переглядів</small>
+                </a>
+            {% empty %}
+                <p class="empty">Популярні статті зʼявляться після оцінок.</p>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="widget-panel">
+        <div class="section-heading">
+            <h2>Категорії</h2>
+            <a href="{% url 'blog:category_list' %}">Керувати</a>
+        </div>
+        <div class="chips">
+            {% for category in categories %}
+                <a class="chip" href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+            {% empty %}
+                <span class="empty">Категорій ще немає.</span>
+            {% endfor %}
+        </div>
+    </article>
+
+    <article class="widget-panel">
+        <div class="section-heading">
+            <h2>Теги</h2>
+            <a href="{% url 'blog:tag_list' %}">Керувати</a>
+        </div>
+        <div class="chips">
+            {% for tag in tags %}
+                <a class="chip chip-warm" href="{{ tag.get_absolute_url }}">{{ tag.name }}</a>
+            {% empty %}
+                <span class="empty">Тегів ще немає.</span>
+            {% endfor %}
+        </div>
+    </article>
 </section>
 {% endblock %}

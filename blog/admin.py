@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Post, PostMedia, Tag
+from .models import Category, Comment, Post, PostMedia, PostRating, Tag
 
 
 @admin.register(Category)
@@ -24,7 +24,15 @@ class PostMediaInline(admin.TabularInline):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'status', 'published_at', 'created_at')
+    list_display = (
+        'title',
+        'author',
+        'category',
+        'status',
+        'views_count',
+        'published_at',
+        'created_at',
+    )
     list_filter = ('status', 'category', 'tags', 'created_at', 'published_at')
     search_fields = ('title', 'excerpt', 'content', 'author__username', 'tags__name')
     prepopulated_fields = {'slug': ('title',)}
@@ -45,3 +53,10 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('post', 'author', 'is_active', 'moderated_by', 'moderated_at', 'created_at')
     list_filter = ('is_active', 'created_at', 'moderated_at')
     search_fields = ('post__title', 'author__username', 'text')
+
+
+@admin.register(PostRating)
+class PostRatingAdmin(admin.ModelAdmin):
+    list_display = ('post', 'user', 'score', 'created_at')
+    list_filter = ('score', 'created_at')
+    search_fields = ('post__title', 'user__username', 'user__email')

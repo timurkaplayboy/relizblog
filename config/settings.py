@@ -72,7 +72,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
-    'blog',
+    'blog.apps.BlogConfig',
     'announcements',
     'subscriptions',
     'core',
@@ -175,3 +175,10 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool(
     not DEBUG and SECURE_HSTS_SECONDS > 0,
 )
 SECURE_HSTS_PRELOAD = env_bool('SECURE_HSTS_PRELOAD', False)
+
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'RelizBlog <noreply@relizblog.local>')
+SITE_URL = os.environ.get('SITE_URL', 'http://127.0.0.1:8000')

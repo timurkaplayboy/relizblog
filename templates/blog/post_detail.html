@@ -3,7 +3,7 @@
 {% block title %}{{ post.title }} · RelizBlog{% endblock %}
 
 {% block content %}
-<article class="article">
+<article class="article article-hero">
     <p class="meta">
         {{ post.category|default:'Без категорії' }} · {{ post.author }} · {{ post.get_status_display }}
         {% if post.published_at %} · {{ post.published_at|date:'d.m.Y' }}{% endif %}
@@ -27,6 +27,23 @@
     {% endif %}
     <div class="article-body">{{ post.content|linebreaks }}</div>
 </article>
+
+<section id="rating" class="rating-panel">
+    <div>
+        <p class="eyebrow">Article score</p>
+        <h2>{{ average_rating }} / 5</h2>
+        <p class="meta">{{ ratings_count }} оцінок · {{ post.views_count }} переглядів</p>
+    </div>
+    {% if user.is_authenticated %}
+        <form method="post" action="{% url 'blog:post_rate' post.slug %}" class="rating-form">
+            {% csrf_token %}
+            {{ rating_form.score }}
+            <button type="submit">{% if user_rating %}Оновити оцінку{% else %}Оцінити{% endif %}</button>
+        </form>
+    {% else %}
+        <a class="ghost-link" href="{% url 'accounts:login' %}">Увійти, щоб оцінити</a>
+    {% endif %}
+</section>
 
 {% if post.media_items.exists %}
     <section class="stack media-section">

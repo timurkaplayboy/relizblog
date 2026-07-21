@@ -1,11 +1,14 @@
 from django.contrib.auth import get_user_model
+from django.core import mail
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from accounts.models import Profile
 
-from .models import Category, Comment, Post, PostMedia, Tag
+from subscriptions.models import NewsletterSubscription
+
+from .models import Category, Comment, Post, PostMedia, PostRating, Tag
 
 
 class BlogViewsTests(TestCase):
@@ -120,3 +123,34 @@ class BlogViewsTests(TestCase):
         comment.refresh_from_db()
         self.assertFalse(comment.is_active)
         self.assertEqual(comment.moderated_by, self.author)
+
+    def test_reader_can_rate_post_and_average_is_calculated(self):
+        self.client.login(username='reader', password='StrongPass12345')
+
+        response = self.client.post(
+            reverse('blog:post_rate', kwargs={'slug': self.post.slug}),
+            {'score': 4},
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(PostRating.objects.get(post=self.post, user=self.reader).score, 4)
+        self.assertEqual(self.post.average_rating, 4)
+
+    @override_settings(
+        EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+        SITE_URL='https://example.test',
+    )
+    def test_new_published_post_sends_email_to_subscribers(self):
+        NewsletterSubscription.objects.create(email='subscriber@example.com')
+
+        Post.objects.create(
+            title='Email post',
+            slug='email-post',
+            author=self.author,
+            content='Text',
+            status=Post.Status.PUBLISHED,
+        )
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Email post', mail.outbox[0].subject)
+        self.assertIn('/subscriptions/newsletter/unsubscribe/', mail.outbox[0].body)
