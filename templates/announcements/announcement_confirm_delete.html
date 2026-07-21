@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Видалення оголошення · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <p class="eyebrow">Danger zone</p>
+    <h1>Видалити оголошення?</h1>
+    <p>“{{ object.title }}” більше не буде доступне на сайті.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button class="danger-button" type="submit">Видалити</button>
+        <a class="ghost-link" href="{{ object.get_absolute_url }}">Скасувати</a>
+    </form>
+</section>
+{% endblock %}

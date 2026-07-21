@@ -109,6 +109,7 @@ class Post(TimeStampedModel):
         verbose_name='Статус',
     )
     published_at = models.DateTimeField(blank=True, null=True, verbose_name='Дата публікації')
+    views_count = models.PositiveIntegerField(default=0, verbose_name='Перегляди')
 
     class Meta:
         ordering = ('-published_at', '-created_at')
@@ -116,6 +117,11 @@ class Post(TimeStampedModel):
         verbose_name_plural = 'Публікації'
 
     def save(self, *args, **kwargs):
+        self._was_published_before = False
+        if self.pk:
+            old_status = Post.objects.filter(pk=self.pk).values_list('status', flat=True).first()
+            self._was_published_before = old_status == self.Status.PUBLISHED
+
         if not self.slug:
             self.slug = make_unique_slug(self, self.title)
         if self.status == self.Status.PUBLISHED and not self.published_at:
@@ -129,6 +135,15 @@ class Post(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def average_rating(self):
+        value = self.ratings.aggregate(models.Avg('score'))['score__avg']
+        return round(value or 0, 1)
+
+    @property
+    def ratings_count(self):
+        return self.ratings.count()
 
 
 class PostMedia(TimeStampedModel):
@@ -196,3 +211,34 @@ class Comment(TimeStampedModel):
 
     def __str__(self):
         return f'{self.author} -> {self.post}'
+
+
+class PostRating(TimeStampedModel):
+    post = models.ForeignKey(
+        Post,
+        on_delete=models.CASCADE,
+        related_name='ratings',
+        verbose_name='Стаття',
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='post_ratings',
+        verbose_name='Користувач',
+    )
+    score = models.PositiveSmallIntegerField(verbose_name='Оцінка')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=('post', 'user'), name='unique_post_rating_per_user'),
+            models.CheckConstraint(
+                condition=models.Q(score__gte=1) & models.Q(score__lte=5),
+                name='post_rating_score_between_1_and_5',
+            ),
+        ]
+        ordering = ('-created_at',)
+        verbose_name = 'Оцінка статті'
+        verbose_name_plural = 'Оцінки статей'
+
+    def __str__(self):
+        return f'{self.post} - {self.score}/5'

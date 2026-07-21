@@ -6,6 +6,12 @@
 <article class="article">
     <p class="meta">{{ announcement.get_priority_display }} · {{ announcement.created_at|date:'d.m.Y' }}</p>
     <h1>{{ announcement.title }}</h1>
+    {% if can_manage_announcements %}
+        <div class="actions">
+            <a class="button-link" href="{% url 'announcements:update' announcement.slug %}">Редагувати</a>
+            <a class="danger-link" href="{% url 'announcements:delete' announcement.slug %}">Видалити</a>
+        </div>
+    {% endif %}
     <div class="article-body">{{ announcement.body|linebreaks }}</div>
 </article>
 {% endblock %}

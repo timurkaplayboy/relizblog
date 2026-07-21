@@ -31,7 +31,7 @@ class Announcement(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(self.title, allow_unicode=True)
+            self.slug = slugify(self.title, allow_unicode=True) or 'announcement'
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

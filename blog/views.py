@@ -2,9 +2,11 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.exceptions import PermissionDenied
 from django.core.paginator import Paginator
+from django.db.models import Avg, Count, F
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
+from django.views import View
 from django.views.generic import CreateView, DeleteView, DetailView, ListView, UpdateView
 
 from .forms import (
@@ -13,9 +15,10 @@ from .forms import (
     CommentModerationForm,
     PostForm,
     PostMediaFormSet,
+    PostRatingForm,
     TagForm,
 )
-from .models import Category, Comment, Post, Tag
+from .models import Category, Comment, Post, PostRating, Tag
 
 
 def user_role(user):
@@ -158,6 +161,7 @@ class PostListView(ListView):
             {
                 'categories': Category.objects.all(),
                 'tags': Tag.objects.all(),
+                'popular_posts': popular_posts(),
                 'current_category': self.category,
                 'current_tag': self.tag,
                 'current_status': self.request.GET.get('status', ''),
@@ -188,6 +192,12 @@ class PostDetailView(DetailView):
             .distinct()
         )
 
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        Post.objects.filter(pk=obj.pk).update(views_count=F('views_count') + 1)
+        obj.views_count += 1
+        return obj
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         comments = self.object.comments.select_related('author')
@@ -199,10 +209,17 @@ class PostDetailView(DetailView):
         page_obj = paginator.get_page(self.request.GET.get('comments_page'))
         query = self.request.GET.copy()
         query.pop('comments_page', None)
+        user_rating = None
+        if self.request.user.is_authenticated:
+            user_rating = self.object.ratings.filter(user=self.request.user).first()
 
         context.update(
             {
                 'comment_form': CommentForm(),
+                'rating_form': PostRatingForm(instance=user_rating),
+                'user_rating': user_rating,
+                'average_rating': self.object.average_rating,
+                'ratings_count': self.object.ratings_count,
                 'comment_page_obj': page_obj,
                 'comments': page_obj.object_list,
                 'can_manage_post': can_moderate,
@@ -391,3 +408,33 @@ class CommentModerateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
         return f'{self.object.post.get_absolute_url()}#comments'
+
+
+def popular_posts(limit=5):
+    return (
+        Post.objects.filter(status=Post.Status.PUBLISHED)
+        .annotate(avg_rating=Avg('ratings__score'), ratings_total=Count('ratings'))
+        .order_by('-avg_rating', '-ratings_total', '-views_count', '-published_at')[:limit]
+    )
+
+
+class PostRatingView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        article = get_object_or_404(
+            Post,
+            slug=kwargs['slug'],
+            status=Post.Status.PUBLISHED,
+        )
+        rating = PostRating.objects.filter(post=article, user=request.user).first()
+        form = PostRatingForm(request.POST, instance=rating)
+
+        if form.is_valid():
+            rating = form.save(commit=False)
+            rating.post = article
+            rating.user = request.user
+            rating.save()
+            messages.success(request, 'Оцінку збережено.')
+        else:
+            messages.error(request, 'Оберіть оцінку від 1 до 5.')
+
+        return redirect(f'{article.get_absolute_url()}#rating')

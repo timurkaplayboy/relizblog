@@ -10,7 +10,10 @@
 <body>
     <header class="site-header">
         <nav class="nav">
-            <a class="brand" href="{% url 'core:home' %}">RelizBlog</a>
+            <a class="brand" href="{% url 'core:home' %}">
+                <span class="brand-mark">R</span>
+                <span>RelizBlog</span>
+            </a>
             <div class="nav-links">
                 <a href="{% url 'blog:post_list' %}">Блог</a>
                 <a href="{% url 'announcements:list' %}">Оголошення</a>

@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Відписка · RelizBlog{% endblock %}
+
+{% block content %}
+<section class="form-panel">
+    <p class="eyebrow">Unsubscribe</p>
+    {% if subscription %}
+        <h1>Відписатися від повідомлень?</h1>
+        <p>Email: {{ subscription.email }}</p>
+        <form method="post">
+            {% csrf_token %}
+            <button class="danger-button" type="submit">Відписатися</button>
+            <a class="ghost-link" href="{% url 'core:home' %}">Залишитися</a>
+        </form>
+    {% else %}
+        <h1>Підписку не знайдено</h1>
+        <p class="empty">Можливо, посилання вже неактивне або було змінене.</p>
+    {% endif %}
+</section>
+{% endblock %}
